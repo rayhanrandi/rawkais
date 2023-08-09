@@ -1,0 +1,36 @@
+/* LAYOUT */
+/* Override main style */
+#ti_m1 {
+	padding: 0 10px;
+}
+td {
+	padding: 0;
+	vertical-align: top;
+}
+.middlecol {
+	background: url(leftline.png) repeat-y;
+}
+.infocol, .linkscol, .newscol {
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+
+/* STYLE */
+
+/* Info */
+div.infocol h3 { margin-left: 0; } /* IE6 */
+div.infocol dl { margin-top: 0; }
+div.infocol dt { font-weight: bold; border-bottom: 1px dotted #CCC; }
+div.infocol dd { margin-left: 1em; margin-bottom: .5em; }
+
+/* News */
+div.newscol h3, div.newscol h4, div.newscol div.newsitem, div.newscol table, div.newscol p { margin-left: 34px; margin-right: 10px; }
+.newscol { padding-bottom: 1em; }
+.newscol .title { font-weight: bold; margin-bottom: 1em; }
+.newscol .content { padding-bottom: 1em; }
+.newscol .meta { font-size: .8em; font-weight: bold; color: #444; }
+
+/* Links */
+.linkscol li { }
+
+.grippie { height: 5px; line-height: 5px; cursor: N-resize; background: url(textarea/grippie.png) center no-repeat; }

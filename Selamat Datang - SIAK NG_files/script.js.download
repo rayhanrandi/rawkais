@@ -1,0 +1,45 @@
+function checkForms() {
+
+	var orgNotChecked = true;
+	var roleNotChecked = true;
+	var org = document.getElementsByName('org[]');
+	var role = document.getElementsByName('role[]');
+	var title = document.newsform.title.value;
+	var content = document.newsform.content.value;
+
+	for (var i = 0; i < org.length; ++i) {
+		if (org[i].checked) {
+			orgNotChecked = false;
+			break;
+		}
+	}
+
+	for (var i = 0; i < role.length; ++i) {
+		if (role[i].checked) {
+			roleNotChecked = false;
+			break;
+		}
+	}
+
+	if (title == '') {
+		alert('Anda belum mengisi judul');
+		return false;
+	}
+	else if (content == '') {
+		alert('Anda belum mengisi berita/pengumuman');
+		return false;
+	}
+	else if (orgNotChecked) {
+		alert('Silakan pilih Program Studi');
+		return false;
+	}
+	else if (roleNotChecked) {
+		alert('Silakan pilih Role');
+		return false;
+	}
+	else {
+		return true;
+	}
+
+}
+

@@ -66,9 +66,9 @@ def isi_irs(irs: dict):
         pick_class(selection, irs[matkul])
 
     # 4. submit irs
-    driver.find_element(
-        By.XPATH, '//*[@id="ti_m1"]/div/table/tbody/tr/td/form/div[2]/input[2]'
-        ).click()
+    # driver.find_element(
+    #     By.XPATH, '//*[@id="ti_m1"]/div/table/tbody/tr/td/form/div[2]/input[2]'
+    #     ).click()
     
     print('done.')
 
@@ -176,7 +176,7 @@ if __name__ == "__main__":
     login_url = "https://academic.ui.ac.id/main/Authentication/"
     logout_url = "https://academic.ui.ac.id/main/Authentication/Logout"
     home_url = "https://academic.ui.ac.id/main/Welcome/"
-    irs_url = "https://academic.ui.ac.id/main/CoursePlan/CoursePlanEdit"
+    # irs_url = "https://academic.ui.ac.id/main/CoursePlan/CoursePlanEdit"
     
     options = webdriver.ChromeOptions()
     options.add_argument('--ignore-certificate-errors')
@@ -188,9 +188,14 @@ if __name__ == "__main__":
     driver = webdriver.Chrome(options=options)
     driver.set_page_load_timeout(1.5)
 
+    ### 3. TEST isi irs: comment ###
+    irs_url = "file:///C:/Users/rayha/Dokumen/code/projects/siakwarbot/Pengisian%20IRS%20-%20Rayhan%20Putra%20Randi%20(2106705644)%3B%20Kurikulum%2001.00.12.01-2020%20-%20SIAK%20NG.html"
+    driver.get(irs_url)
+    isi_irs(irs)
+
     # driver
-    while True:
-        driver.get(login_url)
-        execute()
-        sys.exit(0) # ends instance if ran successfully
+    # while True:
+    #     driver.get(login_url)
+    #     execute()
+    #     sys.exit(0) # ends instance if ran successfully
     

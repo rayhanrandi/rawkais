@@ -1,9 +1,10 @@
+import sys
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support import expected_conditions as EC
-import sys
 
 
 def execute():
@@ -12,7 +13,7 @@ def execute():
     if its loaded, then autologin.
     """
     loaded = check_page_load('login')
-    if (loaded): 
+    if loaded: 
         login(username, password)
 
 def login(username: str, password: str):
@@ -114,7 +115,7 @@ def check_page_load(page: str) -> bool:
     then checks if the page is loaded successfully
     by checking if certain elements are present in the page
     according to the argument.
-    if not present, wait for 1 second to load 
+    if not present, wait for <refresh_rate> second to load 
     then throw exception to reload and check again recursively
     if present, then return true.
     """
@@ -122,19 +123,19 @@ def check_page_load(page: str) -> bool:
         if (page == 'login'):
             data = EC.presence_of_element_located(
                 (By.XPATH, '//*[@id="u"]'))
-            WebDriverWait(driver, 1).until(data)
+            WebDriverWait(driver, refresh_rate).until(data)
         elif (page == 'home'):
             data = EC.presence_of_element_located(
                 (By.XPATH, '//*[@id="m_b1"]/div[1]'))
-            WebDriverWait(driver, 1).until(data)
+            WebDriverWait(driver, refresh_rate).until(data)
         elif (page == 'irs'):
             data = EC.presence_of_element_located(
                 (By.XPATH, '//*[@id="ti_h"]'))
-            WebDriverWait(driver, 1).until(data)
+            WebDriverWait(driver, refresh_rate).until(data)
     except TimeoutException as e:
         print('heavy load. refreshing...')
         driver.refresh()
-        handle_alerts()
+        # handle_alerts()
         check_page_load(page)
 
     return True
@@ -145,23 +146,28 @@ def handle_alerts():
     by focusing into the alert and autoclicks accept to dismiss.
     """
     try:
-        WebDriverWait(driver, 1).until(EC.alert_is_present)
+        WebDriverWait(driver, refresh_rate).until(EC.alert_is_present)
         driver.switch_to.alert.accept()
     except:
         pass
 
     
+
 if __name__ == "__main__":
 
     username = "<username>"
     password = "<password>"
-    term = 2    # 1 : smt-ganjil, 2 : smt-genap, 3: smt-pendek
 
+    '''
+    Term selection:
+    1 : smt-ganjil, 2 : smt-genap, 3: smt-pendek
+    '''
+    term = 1 
 
     """
-    valid format:
+    valid format -> key value pairs of <str: list[int]>,
     'c[<class_code>_<curriculum_code>]': [<priority>]
-    with 0 begin the topmost class 
+    with 0 being the topmost class 
     e.g. A class = 0, B class = 1, etc.
     """
     irs = {
@@ -179,23 +185,35 @@ if __name__ == "__main__":
     # irs_url = "https://academic.ui.ac.id/main/CoursePlan/CoursePlanEdit"
     
     options = webdriver.ChromeOptions()
+
     options.add_argument('--ignore-certificate-errors')
     options.add_argument('--ignore-ssl-errors')
     options.add_argument('log-level=3')
+    options.add_argument("--disable-infobars")
+    options.add_argument("start-maximized")
+    options.add_argument("--disable-extensions")
+
+    # Pass the argument 1 to allow and 2 to block
+    options.add_experimental_option(
+        "prefs", {"profile.default_content_setting_values.notifications": 2}
+    )
     options.add_experimental_option('detach', True) # keep browser open
+    options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    options.add_experimental_option('useAutomationExtension', False)
 
     # open browser
     driver = webdriver.Chrome(options=options)
-    driver.set_page_load_timeout(1.5)
+    driver.set_page_load_timeout(1)
+    refresh_rate = 1
 
     ### 3. TEST isi irs: comment ###
-    irs_url = "file:///C:/Users/rayha/Dokumen/code/projects/siakwarbot/Pengisian%20IRS%20-%20Rayhan%20Putra%20Randi%20(2106705644)%3B%20Kurikulum%2001.00.12.01-2020%20-%20SIAK%20NG.html"
-    driver.get(irs_url)
-    isi_irs(irs)
+    irs_url = "file:///C:/Users/rayha/Dokumen/code/projects/autoirs/Pengisian%20IRS%20-%20Rayhan%20Putra%20Randi%20(2106705644)%3B%20Kurikulum%2001.00.12.01-2020%20-%20SIAK%20NG.html"
+    # driver.get(irs_url)
+    # isi_irs(irs)
 
     # driver
-    # while True:
-    #     driver.get(login_url)
-    #     execute()
-    #     sys.exit(0) # ends instance if ran successfully
+    while True:
+        driver.get(login_url)
+        execute()
+        sys.exit(0) # ends instance if ran successfully
     

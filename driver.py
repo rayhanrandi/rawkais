@@ -1,4 +1,5 @@
 import sys
+import json
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -7,22 +8,35 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support import expected_conditions as EC
 
 
-def execute():
+LOGIN_URL = "https://academic.ui.ac.id/main/Authentication/"
+LOGOUT_URL = "https://academic.ui.ac.id/main/Authentication/Logout"
+HOME_URL = "https://academic.ui.ac.id/main/Welcome/"
+# IRS_URL = "https://academic.ui.ac.id/main/CoursePlan/CoursePlanEdit"
+
+
+def execute() -> None:
     """
     executes script, checks if login page is loaded.
     if its loaded, then autologin.
     """
+    global tries
+
     loaded = check_page_load('login')
     if loaded: 
-        login(username, password)
+        login(USERNAME, PASSWORD)
 
-def login(username: str, password: str):
+
+def login(username: str, password: str) -> None:
     """
     autofills username and password, then submits.
     checks if the home page is fully loaded, indicating login successful.
     checks if the term is correct, if yes, then proceed to irs page.
     if not, flow is passed into logout function to relogin.
     """
+    global tries
+
+    tries += 1
+
     uname_field = driver.find_element(By.NAME, 'u')
     uname_field.clear()
     uname_field.send_keys(username)
@@ -35,30 +49,35 @@ def login(username: str, password: str):
                         './/*[@id="submit"]/input[@type="submit"]').click()
     
     check_page_load('home')
-    print('succesfully logged in...')
+    print(f'\n[{tries}] >> Succesfully logged in...')
     
     active_term = driver.find_element(
         By.XPATH, 
         '//*[@id="m_b1"]/div[1]').get_attribute('innerText')
     
-    print(f'Current status:\n{active_term}')
+    print(f'[{tries}] >> Current status:\n' + '=' * 75 + f'\n{active_term}\n' + '=' * 75)
 
-    if (f'Term {term}' not in active_term):
-        print('term incorrect. retrying...')
+    if (f'Term {TERM}' not in active_term):
+        print(f'[{tries}] >> Term incorrect. retrying...')
         logout()
 
-    isi_irs(irs)
+    print('>> Term correct!')
 
-def isi_irs(irs: dict):
+    isi_irs(IRS)
+
+
+def isi_irs(irs: dict) -> None:
     """
     opens irs page then check if page successfully loaded,
     if yes then autofill classes according to dict then submits.
     -> key = class code, value: priority list
     """
-    driver.get(irs_url)
+    global tries
+
+    driver.get(IRS_URL)
     check_page_load('irs')
-    print('filling in classes...')
-    print('selected:')
+    print(f'[{tries}] >> Filling in classes...')
+    print(f'[{tries}] >> Selected:')
 
     # pick class w priority
     for matkul in list(irs.keys()):
@@ -66,24 +85,30 @@ def isi_irs(irs: dict):
         # handle priority lists
         pick_class(selection, irs[matkul])
 
-    # 4. submit irs
+    ## 4. submit irs
     # driver.find_element(
     #     By.XPATH, '//*[@id="ti_m1"]/div/table/tbody/tr/td/form/div[2]/input[2]'
     #     ).click()
     
-    print('done.')
+    print('done. ' * 10)
+    print('done. ' * 10)
+    print('done. ' * 10)
+    print(f'in {tries} tries.')
 
 
-def logout():
+def logout() -> None:
     """
     redirects to login page should logout succeeds.
     then run execute function again,
     starting the proccess from the beginning (relogin).
     """
-    driver.get(logout_url)
+    global tries
+
+    driver.get(LOGOUT_URL)
     execute()
 
-def pick_class(selection: list, priority: list):
+
+def pick_class(selection: list, priority: list) -> None:
     """
     function receives current class selection 
     and its list of priorities as arguments.
@@ -92,6 +117,8 @@ def pick_class(selection: list, priority: list):
     if yes, then enrolls the user to the class.
     if not, then checks the following priorty in the list.
     """
+    global tries
+
     for p in priority:
         selected_class = selection[p]
         class_name = selected_class.find_element(
@@ -104,49 +131,60 @@ def pick_class(selection: list, priority: list):
             By.XPATH, 'following-sibling::*[3]')
         enrolled = capacity.find_element(By.XPATH, 'following-sibling::*[1]')
         if (int(capacity.get_attribute("innerText")) > int(enrolled.get_attribute("innerText"))):
-            selected_class.click()
-            print(f'{class_name} -> capacity: {capacity.get_attribute("innerText")}, current: {enrolled.get_attribute("innerText")}')
-            break
+            if not (selection[p].is_selected()):
+                selected_class.click()
+                print(f' - {class_name} -> capacity: {capacity.get_attribute("innerText")}, current: {enrolled.get_attribute("innerText")}')
+                break
         
+
 def check_page_load(page: str) -> bool:
     """
-    *UNTESTED*
     takes a string of page that is checked as argument,
     then checks if the page is loaded successfully
     by checking if certain elements are present in the page
     according to the argument.
-    if not present, wait for <refresh_rate> second to load 
+    if not present, wait for <REFRESH_RATE> second to load 
     then throw exception to reload and check again recursively
     if present, then return true.
     """
+    global tries
+
     try:
         if (page == 'login'):
             data = EC.presence_of_element_located(
                 (By.XPATH, '//*[@id="u"]'))
-            WebDriverWait(driver, refresh_rate).until(data)
+            WebDriverWait(driver, REFRESH_RATE).until(data)
         elif (page == 'home'):
             data = EC.presence_of_element_located(
                 (By.XPATH, '//*[@id="m_b1"]/div[1]'))
-            WebDriverWait(driver, refresh_rate).until(data)
+            WebDriverWait(driver, REFRESH_RATE).until(data)
         elif (page == 'irs'):
             data = EC.presence_of_element_located(
                 (By.XPATH, '//*[@id="ti_h"]'))
-            WebDriverWait(driver, refresh_rate).until(data)
+            WebDriverWait(driver, REFRESH_RATE).until(data)
     except TimeoutException as e:
-        print('heavy load. refreshing...')
-        driver.refresh()
+        print(f'[{tries}] >> Heavy load. refreshing...')
+        if (page == 'login'):
+            driver.get(LOGIN_URL)
+        elif (page == 'home'):
+            driver.get(HOME_URL)
+        elif (page == 'irs'):
+            driver.get(IRS_URL)
         # handle_alerts()
         check_page_load(page)
 
     return True
 
-def handle_alerts():
+
+def handle_alerts() -> None:
     """
     helper function to handle any alerts that might pop up
     by focusing into the alert and autoclicks accept to dismiss.
     """
+    global tries
+
     try:
-        WebDriverWait(driver, refresh_rate).until(EC.alert_is_present)
+        WebDriverWait(driver, REFRESH_RATE).until(EC.alert_is_present)
         driver.switch_to.alert.accept()
     except:
         pass
@@ -155,14 +193,16 @@ def handle_alerts():
 
 if __name__ == "__main__":
 
-    username = "<username>"
-    password = "<password>"
+    config = json.load(open('./config.json'))
 
-    '''
+    USERNAME = config['username']
+    PASSWORD = config['password']
+
+    """
     Term selection:
     1 : smt-ganjil, 2 : smt-genap, 3: smt-pendek
-    '''
-    term = 1 
+    """
+    TERM = config['term']
 
     """
     valid format -> key value pairs of <str: list[int]>,
@@ -170,28 +210,20 @@ if __name__ == "__main__":
     with 0 being the topmost class 
     e.g. A class = 0, B class = 1, etc.
     """
-    irs = {
-        'c[CSGE602012_01.00.12.01-2020]': [1,2,0,3,4],   
-        'c[CSGE602091_01.00.12.01-2020]': [0,3,2,1,4,5], 
-        'c[CSGE602022_01.00.12.01-2020]': [3,4,0,1,2,5], 
-        'c[CSCM602055_01.00.12.01-2020]': [1,2,0],       
-        'c[CSGE602040_01.00.12.01-2020]': [5,1,0,3,4,2],         
-    }
-
-
-    login_url = "https://academic.ui.ac.id/main/Authentication/"
-    logout_url = "https://academic.ui.ac.id/main/Authentication/Logout"
-    home_url = "https://academic.ui.ac.id/main/Welcome/"
-    # irs_url = "https://academic.ui.ac.id/main/CoursePlan/CoursePlanEdit"
+    IRS = config['irs']
     
     options = webdriver.ChromeOptions()
 
     options.add_argument('--ignore-certificate-errors')
     options.add_argument('--ignore-ssl-errors')
     options.add_argument('log-level=3')
-    options.add_argument("--disable-infobars")
     options.add_argument("start-maximized")
+    options.add_argument("enable-automation")
     options.add_argument("--disable-extensions")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--dns-prefetch-disable")
+    options.add_argument("--disable-gpu")
+    # options.add_argument("--headless=new")  # uncomment to disable chrome window
 
     # Pass the argument 1 to allow and 2 to block
     options.add_experimental_option(
@@ -203,17 +235,19 @@ if __name__ == "__main__":
 
     # open browser
     driver = webdriver.Chrome(options=options)
-    driver.set_page_load_timeout(1)
-    refresh_rate = 1
+    # driver.set_page_load_timeout(1)
+    REFRESH_RATE = 1
 
     ### 3. TEST isi irs: comment ###
-    irs_url = "file:///C:/Users/rayha/Dokumen/code/projects/autoirs/Pengisian%20IRS%20-%20Rayhan%20Putra%20Randi%20(2106705644)%3B%20Kurikulum%2001.00.12.01-2020%20-%20SIAK%20NG.html"
-    # driver.get(irs_url)
-    # isi_irs(irs)
+    IRS_URL = "file:///C:/Users/rayha/Dokumen/code/projects/autoirs/Pengisian%20IRS%20-%20Rayhan%20Putra%20Randi%20(2106705644)%3B%20Kurikulum%2001.00.12.01-2020%20-%20SIAK%20NG.html"
+    # driver.get(IRS_URL)
+    # isi_irs(IRS)
+
+    tries = 1
 
     # driver
     while True:
-        driver.get(login_url)
+        driver.get(LOGIN_URL)
         execute()
         sys.exit(0) # ends instance if ran successfully
     

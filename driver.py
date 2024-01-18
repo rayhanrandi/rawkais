@@ -11,7 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 LOGIN_URL = "https://academic.ui.ac.id/main/Authentication/"
 LOGOUT_URL = "https://academic.ui.ac.id/main/Authentication/Logout"
 HOME_URL = "https://academic.ui.ac.id/main/Welcome/"
-# IRS_URL = "https://academic.ui.ac.id/main/CoursePlan/CoursePlanEdit"
+IRS_URL = "https://academic.ui.ac.id/main/CoursePlan/CoursePlanEdit"
 
 
 def execute() -> None:
@@ -90,6 +90,7 @@ def isi_irs(irs: dict) -> None:
     #     By.XPATH, '//*[@id="ti_m1"]/div/table/tbody/tr/td/form/div[2]/input[2]'
     #     ).click()
     
+    print()
     print('done. ' * 10)
     print('done. ' * 10)
     print('done. ' * 10)
@@ -133,7 +134,8 @@ def pick_class(selection: list, priority: list) -> None:
         if (int(capacity.get_attribute("innerText")) > int(enrolled.get_attribute("innerText"))):
             if not (selection[p].is_selected()):
                 selected_class.click()
-                print(f' - {class_name} -> capacity: {capacity.get_attribute("innerText")}, current: {enrolled.get_attribute("innerText")}')
+                print(' ')
+                print(' ' * 10 + f' > {class_name} -> capacity: {capacity.get_attribute("innerText")}, current: {enrolled.get_attribute("innerText")}')
                 break
         
 
@@ -239,11 +241,11 @@ if __name__ == "__main__":
     REFRESH_RATE = 1
 
     ### 3. TEST isi irs: comment ###
-    IRS_URL = "file:///C:/Users/rayha/Dokumen/code/projects/autoirs/Pengisian%20IRS%20-%20Rayhan%20Putra%20Randi%20(2106705644)%3B%20Kurikulum%2001.00.12.01-2020%20-%20SIAK%20NG.html"
+    # IRS_URL = "file:///C:/Users/rayha/Dokumen/code/projects/rawkais/Pengisian%20IRS%20-%20Rayhan%20Putra%20Randi%20(2106705644)%3B%20Kurikulum%2001.00.12.01-2020%20-%20SIAK%20NG.html"
     # driver.get(IRS_URL)
     # isi_irs(IRS)
 
-    tries = 1
+    tries = 0
 
     # driver
     while True:
